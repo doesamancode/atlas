@@ -1,0 +1,40 @@
+{
+  "destination": "Goa",
+  "duration": 1,
+  "total_budget": 10000,
+  "travelers": 1,
+  "per_day_breakdown": [
+    {
+      "day": 1,
+      "title": "Goa Coastal Charm & Sunset",
+      "activities": [
+        "Arrive at Goa and check into accommodation",
+        "Relax and swim at Palolem Beach",
+        "Enjoy a fresh seafood lunch at a beach shack",
+        "Explore local markets or a nearby temple",
+        "Experience a serene sunset cruise on the Mandovi River",
+        "Dine at a highly-rated local restaurant with live music",
+        "Optional: Visit a lively beach bar for a nightcap"
+      ],
+      "estimated_cost": 6000
+    }
+  ],
+  "accommodation": {
+    "type": "Boutique Guesthouse/Hostel Private Room",
+    "example": "Art Hostel Palolem",
+    "estimated_cost": 2500
+  },
+  "transport": {
+    "recommended_transport": "Taxi (arrival/departure) & Scooter Rental (local exploration)",
+    "estimated_cost": 1500
+  },
+  "top_places": [
+    "Palolem Beach",
+    "Mandovi River",
+    "Spice Plantations",
+    "Anjuna Flea Market (if operational)",
+    "Dudhsagar Falls (requires more time)",
+    "Basilica of Bom Jesus"
+  ],
+  "summary": "This one-day itinerary for a solo traveler to Goa focuses on experiencing the essence of its southern beaches, local cuisine, and a memorable sunset cruise. With a comfortable budget, it allows for relaxation, good food, and a taste of Goa's vibrant atmosphere, ensuring a delightful escape."
+}

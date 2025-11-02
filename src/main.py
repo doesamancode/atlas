@@ -1,4 +1,4 @@
-print("=== Agentic Travel Planner ===")
+print("=== ATLAS ===")
 
 from src.ui.cli_interface import launch_cli
 

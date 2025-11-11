@@ -1,4 +1,4 @@
-from src.utils.api_utils import call_llm
+from utils.api_utils import call_llm
 import json
 
 def generate_plan(destination, budget, travelers, duration):

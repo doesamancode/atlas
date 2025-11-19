@@ -1,26 +1,31 @@
 from orchestrator import run_agentic_pipeline
 
-def generate_plan(source, destinations, budget, travelers, duration):
+def generate_plan(payload):
     """
     Agentic planner entrypoint.
-    source: starting city (string)
-    destinations: list of destination city names
-    budget: total budget (number)
-    travelers: number of travelers (int)
-    duration: total trip days (int)
+    Accepts ONE dict payload from the Streamlit app.
+
+    Expected payload structure:
+    {
+        "source": str,
+        "destinations": [str, str, ...],
+        "budget": int,
+        "travelers": int,
+        "duration": int
+    }
     """
+
+    source = payload.get("source")
+    destinations = payload.get("destinations", [])
+    budget = payload.get("budget")
+    travelers = payload.get("travelers")
+    duration = payload.get("duration")
 
     # ensure destinations is a list
     if isinstance(destinations, str):
-        destinations = [destinations]
+        destinations = [d.strip() for d in destinations.split(",") if d.strip()]
 
-    user_input = {
-        "source": source,
-        "destinations": destinations,
-        "budget": budget,
-        "travelers": travelers,
-        "duration": duration
-    }
+    # Pass UNPACKED values to orchestrator
+    plan = run_agentic_pipeline(source, destinations, duration, budget, travelers)
 
-    plan = run_agentic_pipeline(user_input)
     return plan

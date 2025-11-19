@@ -1,38 +1,31 @@
-from utils.api_utils import call_llm
-import json
+from orchestrator import run_agentic_pipeline
 
-def generate_plan(destination, budget, travelers, duration):
-    prompt = f"""
-You are a professional genius travel-planning assistant. Output a JSON object ONLY (no extra text) with these keys:
-- destination (string)
-- duration (int)
-- total_budget (string or number)
-- travelers (int)
-- per_day_breakdown (array of objects) each with: day (int), title (string), activities (array of strings), estimated_cost (string/number)
-- accommodation (object) with type, example, estimated_cost
-- transport (object) with recommended_transport and estimated_cost
-- top_places (array of strings)
-- summary (string)
+def generate_plan(payload):
+    """
+    Agentic planner entrypoint.
+    Accepts ONE dict payload from the Streamlit app.
 
-Destination: {destination}
-Budget: {budget}
-Travelers: {travelers}
-Duration: {duration}
+    Expected payload structure:
+    {
+        "source": str,
+        "destinations": [str, str, ...],
+        "budget": int,
+        "travelers": int,
+        "duration": int
+    }
+    """
 
-Ensure JSON is valid. Numbers as numbers. Do not include any backticks or markdown.
-"""
-    raw = call_llm(prompt)
-    # attempt to parse
-    try:
-        parsed = json.loads(raw)
-        return parsed
-    except json.JSONDecodeError:
-        # fallback: try to extract JSON substring
-        import re
-        m = re.search(r'(\{.*\})', raw, re.S)
-        if m:
-            try:
-                return json.loads(m.group(1))
-            except Exception:
-                pass
-        return {"error": "could not parse JSON from model", "raw": raw}
+    source = payload.get("source")
+    destinations = payload.get("destinations", [])
+    budget = payload.get("budget")
+    travelers = payload.get("travelers")
+    duration = payload.get("duration")
+
+    # ensure destinations is a list
+    if isinstance(destinations, str):
+        destinations = [d.strip() for d in destinations.split(",") if d.strip()]
+
+    # Pass UNPACKED values to orchestrator
+    plan = run_agentic_pipeline(source, destinations, duration, budget, travelers)
+
+    return plan

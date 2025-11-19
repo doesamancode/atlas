@@ -16,4 +16,4 @@ genai.configure(api_key=GEMINI_API_KEY)
 # Example config values
 PROJECT_NAME = "Agentic Travel Planner"
 VERSION = "0.1"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-flash-latest"

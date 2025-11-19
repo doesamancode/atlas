@@ -30,6 +30,20 @@ if generate:
             # ✅ Fix argument order (destination, budget, travelers, duration)
             itinerary_json = generate_plan(destination, budget, travelers, duration)
 
+            # ------------------------------
+            # ⭐ NEW: AGENTIC ERROR HANDLING
+            # ------------------------------
+            if isinstance(itinerary_json, dict) and itinerary_json.get("error"):
+                error_type = itinerary_json["error"]
+
+                st.error(
+                    "⚠️ Your inputs resulted in an impossible or invalid itinerary.\n\n"
+                    "Please adjust your budget, duration, or destination and try again."
+                )
+                st.stop()   # ⛔ Prevents UI from rendering broken data
+            # ------------------------------
+
+
             # Parse JSON if it's returned as a string
             if isinstance(itinerary_json, str):
                 itinerary = json.loads(itinerary_json)

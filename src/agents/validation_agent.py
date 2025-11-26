@@ -1,57 +1,103 @@
-def validate(plan, user):
+# agents/validation_agent.py
+
+def infer_trip_region(destinations):
     """
-    Ultra-Pro validation for ATLAS:
-
-    Accepts:
-    - multi-city accommodations via "city_accommodations"
-    - old single accommodation block (fallback)
-    - per-day breakdown must exist with at least 1 day
-    - transport must exist
-    - budget check is soft (no hard failures)
-
-    Returns:
-        (is_valid: bool, errors: list)
+    Very simple heuristic to classify trip type based on destination names.
+    If any destination matches long-haul keywords → long_haul
+    Else if any matches Asia/Middle-East → asia
+    Else → domestic (India assumed as base)
     """
+    if not destinations:
+        return "domestic"
 
+    long_haul_keywords = {
+        # Countries / regions
+        "canada", "usa", "united states", "america", "uk", "england", "britain",
+        "london", "france", "paris", "germany", "berlin", "italy", "rome",
+        "spain", "madrid", "barcelona", "switzerland", "zurich", "geneva",
+        "netherlands", "amsterdam", "belgium", "australia", "sydney", "melbourne",
+        "new zealand", "auckland", "toronto", "vancouver", "los angeles",
+        "new york", "san francisco", "boston", "chicago", "mauritius"
+    }
+
+    asia_keywords = {
+        "singapore", "thailand", "bangkok", "phuket", "krabi",
+        "malaysia", "kuala lumpur", "indonesia", "bali",
+        "vietnam", "hanoi", "ho chi minh",
+        "sri lanka", "colombo",
+        "nepal", "kathmandu",
+        "bhutan",
+        "maldives",
+        "qatar", "doha",
+        "dubai", "uae", "abu dhabi",
+        "hong kong", "japan", "tokyo", "osaka",
+        "china", "beijing", "shanghai"
+    }
+
+    # First pass: long-haul detection
+    for dest in destinations:
+        d = dest.lower()
+        if any(kw in d for kw in long_haul_keywords):
+            return "long_haul"
+
+    # Second pass: Asia / nearby
+    for dest in destinations:
+        d = dest.lower()
+        if any(kw in d for kw in asia_keywords):
+            return "asia"
+
+    # Fallback: assume domestic (India)
+    return "domestic"
+
+
+def validate(plan, user_input):
     errors = []
 
-    # 🔍 Per-day breakdown must exist
-    if "per_day_breakdown" not in plan:
-        errors.append("missing_per_day_data")
+    budget = user_input.get("budget", 0) or 0
+    travelers = user_input.get("travelers", 1) or 1
+    duration = user_input.get("duration", 1) or 1
+    destinations = user_input.get("destinations", []) or []
+
+    # ---- Basic numeric sanity ----
+    if budget <= 0 or duration <= 0 or travelers <= 0:
+        errors.append("Invalid numeric inputs (budget, duration, or travelers).")
+
+    # ---- City/day feasibility ----
+    if len(destinations) > duration:
+        errors.append("Too many destinations for the given number of days.")
+
+    # ---- Budget realism by region ----
+    trip_type = infer_trip_region(destinations)
+
+    per_day_min = {
+        "domestic": 1500,
+        "asia": 6000,
+        "long_haul": 15000,
+    }.get(trip_type, 1500)
+
+    required_min = per_day_min * duration * travelers
+
+    if budget < required_min:
+        errors.append(
+            f"Budget too low for a {trip_type.replace('_', ' ')} trip. "
+            f"Minimum expected: ₹{required_min:,} for {duration} day(s) × {travelers} traveler(s)."
+        )
+
+    # ---- Structural checks on the plan ----
+    if not plan.get("city_accommodations"):
+        errors.append("Missing per-city accommodation details.")
+
+    per_day = plan.get("per_day_breakdown", [])
+    if not isinstance(per_day, list):
+        errors.append("Invalid per-day breakdown structure.")
     else:
-        if not isinstance(plan["per_day_breakdown"], list) or len(plan["per_day_breakdown"]) == 0:
-            errors.append("empty_per_day")
+        for day in per_day:
+            day_num = day.get("day", "?")
+            if not day.get("activities"):
+                errors.append(f"Day {day_num} has no activities listed.")
+            est = day.get("estimated_cost", 0)
+            if est is None or est < 0:
+                errors.append(f"Day {day_num} has invalid estimated cost.")
 
-    # 🔍 Validate accommodations
-    if "city_accommodations" in plan:
-        if not isinstance(plan["city_accommodations"], list) or len(plan["city_accommodations"]) == 0:
-            errors.append("invalid_city_accommodations")
-        else:
-            # Ensure each entry has city + hotel
-            for entry in plan["city_accommodations"]:
-                if not entry.get("hotel") or not entry.get("city"):
-                    errors.append("missing_city_hotel")
-    else:
-        # fallback structure
-        if "accommodation" not in plan:
-            errors.append("missing_accommodation")
-
-    # 🔍 Validate transport section
-    if "transport" not in plan:
-        errors.append("missing_transport")
-
-    # 🔍 Budget checks (soft)
-    est_acc = 0
-    if "city_accommodations" in plan:
-        est_acc = sum([ac.get("estimated_cost", 0) for ac in plan["city_accommodations"]])
-    else:
-        est_acc = plan.get("accommodation", {}).get("estimated_cost", 0)
-
-    est_transport = plan.get("transport", {}).get("estimated_cost", 0)
-    total_est = est_acc + est_transport
-
-    if total_est > user["budget"] * 1.7:
-        errors.append("budget_too_high")
-
-    # 🔍 Final verdict
+    # ---- Final verdict ----
     return (len(errors) == 0, errors)

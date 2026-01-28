@@ -59,18 +59,9 @@ This project was built in collaboration with my teammate **Divyanshi Jain** — 
 
 ### Live Demo (Render) - [ATLAS](https://agentic-travel-planner.onrender.com/)
 
-> **[ADD_GIF_HERE]**  
-> Add a demo GIF here: `assets/demo.mp4`
-
-![ATLAS Demo](assets/demo.mp4)
+> ![ATLAS Demo](assets/demo.gif)
 
 ### Screenshots
-> **[ADD_SCREENSHOTS_HERE]**  
-> Recommended:
-- `assets/overview.png`
-- `assets/hotels_map.png`
-- `assets/daywise.png`
-- `assets/pdf.png`
 
 | Trip Overview | Accommodation + Maps |
 |---|---|
